@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<!--
+  CSP：比 index.html 宽松一点点，因为要允许 app:// 下的 module 与贴图。
+  刻意保留 'self' 与 app:，不放 http/https —— rig 全程不联网。
+-->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self' app:; img-src 'self' app: data: blob:; media-src 'self' app: data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' app:; connect-src 'self' app:">
+<title>DSH 桌宠 · rig</title>
+<!--
+  ============================================================================
+  桌宠主窗的「动态 rig」页（路线① M2b）—— 用上游 Coopanion 的原版渲染器实时画角色，
+  取代原来"预烘焙 PNG 帧"的做法。上游代码在 vendor/coopanion/（AGPL-3.0，见其 NOTICE.md）。
+
+  设计要点（每条都有原因，别随手改）：
+   1. 贴图**不复制**：上游要 tex/X.png、feat/X.png、schemes/<id>/tex|feat/X.png，
+      我们是扁平目录 ⇒ 用 figure 的 `asset` 选项重映射（tex/feat 之间无同名，去掉前缀是安全的）。
+   2. 主进程与页面的接口沿用**现有 preload**（window.pet）：`onMood` / `onDragMoved`，
+      这样主进程那套状态机一行都不用改。
+   3. 尺寸：`bounds()` 从窗口实际尺寸算；角色高度约占窗口高的 80%（`--rig-scale` 可调，
+      由 config.pet.rigScale 下发）。
+   4. 页面会把自己就绪 / 当前状态写进 `window.__rigDiag`，供冒烟测试与自检读取。
+  ============================================================================
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+  #stage { position: relative; width: 100%; height: 100%; overflow: hidden; }
+  #stageSvg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .shadow { fill: #1d2340; opacity: .18; }
+  /* rig 没起来时的兜底提示（正常情况下永远看不见） */
+  #fallback { position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+              font: 12px/1.5 system-ui, "Microsoft YaHei", sans-serif; color: #b33; text-align: center; padding: 8px; }
+
+  /*
+    说话气泡 —— 样式基本照搬 index.html/style.css 的 #bubble（保持一致的手感）。
+    ⚠️ 两个关键点：
+      1. `pointer-events: none`：气泡不能吃掉指针事件，否则点气泡会变成拖桌宠。
+      2. **空间由主进程给**：多行气泡时 main 会把窗口向上撑高（bubbleExtra），
+         页面只管从顶部开始画，不要自己挤高度。
+  */
+  #bubble {
+    position: absolute;
+    left: 6px; right: 6px; top: 2px;
+    max-height: 96px;
+    overflow: hidden;
+    padding: 7px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid rgba(200, 176, 150, 0.55);
+    box-shadow: 0 3px 10px rgba(60, 40, 20, 0.22);
+    color: #3b332c;
+    font: 12px/1.5 system-ui, "Microsoft YaHei", sans-serif;
+    text-align: left;
+    word-break: break-word;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+    opacity: 1;
+  }
+  #bubble[hidden] { display: none; }
+  #bubble.err { color: #b33; }
+  #bubble.typing::after { content: '▍'; opacity: .5; animation: rigBlink 1s steps(1) infinite; }
+  @keyframes rigBlink { 50% { opacity: 0; } }
+
+  /*
+    铁盆（error 状态扣在头上）。素材是上游包里的 basin.png（128×64，程序化生成）。
+    位置由 rig.js 每帧按 `layout().box` 算 —— 她走动/被拎起时盆跟着头走。
+    参数都集中在 rig.js 的 BASIN 常量里，方便一处调。
+  */
+  #basin {
+    position: absolute; left: 0; top: 0;
+    pointer-events: none;
+    transform-origin: 50% 100%;
+    will-change: transform;
+    filter: drop-shadow(0 1px 1px rgba(30, 20, 10, .25));
+  }
+  #basin[hidden] { display: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="stageSvg" aria-hidden="true">
+    <ellipse id="shadow" class="shadow" cx="0" cy="0" rx="0" ry="0"></ellipse>
+    <g id="pet"></g>
+    <g id="fx"></g>
+  </svg>
+  <div id="bubble" hidden></div>
+  <img id="basin" src="app://pet/assets/basin.png" alt="" hidden>
+  <div id="fallback"></div>
+</div>
+
+<!-- 兜底看门狗：普通脚本（一定会执行）。rig.js 若因任何原因没跑起来，3 秒后在页面上写清楚原因。 -->
+<script src="./rig-guard.js"></script>
+<script type="module" src="./rig.js"></script>
+</body>
+</html>

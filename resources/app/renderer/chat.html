@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<!--
+  聊天窗。
+  与桌宠窗不同：这是普通窗口，可以用正常的 CSS 布局。
+  刻意保持「无打包器」的约定 —— 用普通 <script>，不用 type="module"
+  （file:// 下 Chromium 会以 CORS 拦掉 ES module）。
+-->
+<title>DSH 桌宠 · 聊天</title>
+<link rel="stylesheet" href="chat.css">
+</head>
+<body>
+  <header id="head">
+    <span id="who">鲸鱼娘</span>
+    <span id="status" class="idle">就绪</span>
+  </header>
+
+  <!-- 互动叙事面板：默认收起。剧本逻辑在 src/game/stories/*，这里只做展示与输入 -->
+  <section id="story" hidden>
+    <div id="storyHead">
+      <span id="storyTitle">剧情</span>
+      <span id="storyHint"></span>
+      <button id="storyClose" title="关闭面板（剧情留在后台）">×</button>
+    </div>
+    <div id="storyLog"></div>
+    <div id="storyDice" hidden></div>
+    <div id="storyChoices"></div>
+    <div id="storyInput">
+      <input id="storyText" placeholder="说点什么…（Enter 提交给剧情）">
+      <button id="storySay">说</button>
+    </div>
+    <div id="storyState"></div>
+  </section>
+
+  <main id="log" aria-live="polite"></main>
+
+  <footer id="foot">
+    <textarea id="input" rows="1" placeholder="说点什么…（Enter 发送 / Shift+Enter 换行）"></textarea>
+    <button id="look" title="让她看一眼屏幕（按需单次，不是常驻截屏）">👁</button>
+    <button id="send" title="发送（Enter）">发送</button>
+  </footer>
+
+  <script src="chat.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<!--
+  设置窗。与 chat.html 一样刻意保持「无打包器」的约定：普通 <script>，不用 type="module"
+  （file:// 下 Chromium 会以 CORS 拦掉 ES module）。
+
+  这里只有骨架。表单由后端 pet.getSettings() 描述的 SettingsModel 驱动，
+  渲染逻辑全在 settings.js；没有 Electron 后端也能直接用浏览器打开看完整界面（走内置 MOCK_MODEL）。
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; media-src 'self' data:">
+<meta name="color-scheme" content="light">
+<title>设置 · 蓝色鲸鱼娘</title>
+<link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div id="shell">
+    <nav id="sidenav" aria-label="设置分区">
+      <div id="brand">设置</div>
+      <div id="navList"></div>
+      <div id="navFoot">
+        <span id="navVersion">v—</span>
+        <span>AGPL-3.0-or-later</span>
+      </div>
+    </nav>
+
+    <div id="main">
+      <div id="notices" aria-live="polite"></div>
+      <main id="form" aria-label="设置表单"></main>
+      <footer id="statusbar">
+        <span id="saveState">正在读取设置…</span>
+        <span id="demoTag" class="tag demo" hidden>演示数据</span>
+        <span class="spacer"></span>
+        <span id="statusHint">改动自动保存 · Esc 关闭窗口</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 二次确认对话框（原生 confirm 风格太跳，自己做一个同皮肤的） -->
+  <div id="modal" hidden>
+    <div id="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h2 id="modalTitle"></h2>
+      <p id="modalText"></p>
+      <div id="modalActions"></div>
+    </div>
+  </div>
+
+  <!-- 导入用：隐藏的原生文件选择框，由「导入…」按钮触发 -->
+  <input id="fileInput" type="file" accept=".txt,.json,text/plain,application/json" hidden aria-label="选择要导入的人格文件">
+
+  <script src="settings.js"></script>
+</body>
+</html>

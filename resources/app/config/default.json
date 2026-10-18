@@ -1,0 +1,182 @@
+{
+  "pet": {
+    "id": "whale-girl",
+    "_comment": "角色素材 id。指向 assets/pets/<id>/。置空则回落到内置的 assets/gif/ 占位素材。",
+    "_states": "petdex 状态 → 逻辑状态映射：idle→idle, waving→talking, jumping→click, waiting→thinking, failed→error",
+    "renderer": "rig",
+    "_comment_renderer": "渲染路线。rig = 上游 Coopanion 原版实时 rig（弹簧物理 / 28 表情 / 口型 / 被拎起甩出去；代码与贴图在 vendor/coopanion，AGPL-3.0；需要 WebGL ⇒ profile C 关硬件加速时会自动回退）。frames = 原来的预烘焙 PNG 帧（assets/pets/whale-girl 53 帧）。**出问题把这里改成 frames 就能回退**，两条路都保留。",
+    "scheme": "deepseek",
+    "_comment_scheme": "rig 配色：deepseek / harness / chatgpt / claude / gemini / qwen / kimi / minimax。",
+    "rigScale": 1,
+    "_comment_rigScale": "rig 整体缩放微调，1 = 角色约占窗口高的 80%。嫌小/嫌大就调它。"
+  },
+  "window": {
+    "width": 320,
+    "height": 360,
+    "_comment_fixed": "上面两个值只在 fitToPet=false 或找不到角色素材时生效。",
+    "fitToPet": true,
+    "padding": 6,
+    "bubbleSpace": 22,
+    "_comment_bubbleSpace": "顶部给气泡预留的高度。设 0 则气泡覆盖在角色上，窗口更小但可能挡住头。",
+    "marginRight": 40,
+    "marginBottom": 80,
+    "alwaysOnTop": true,
+    "ignoreMouseByDefault": false,
+    "_comment_ignoreMouse": "P0 设为 false，否则窗口无法拖动、也无法点击。P1 做 hover 命中检测后再改回 true。"
+  },
+  "drag": {
+    "tilt": false,
+    "style": "held",
+    "anchor": "cursor",
+    "_comment": "拖动时切到 style 指定的姿态（held=拽呆毛 / running=奔跑 / rolling=打滚）。手已经画在 held 素材里，不再叠加任何贴图。anchor=cursor 保持按下时的相对位置，窗口不跳、手感最稳；=grab 则让光标正对抓取锚点（呆毛根部，见 pet-info.json 的 grab）。tilt 默认关，因为姿态帧自带走动。"
+  },
+  "debug": {
+    "dragCapture": false,
+    "_comment": "设为 true 时，拖动会把每步坐标写进日志并在 .selfcheck/drag/ 截图。排查拖动异常时打开，平时关掉（截图有开销）。"
+  },
+  "voice": {
+    "enabled": true,
+    "_comment_enabled": "语音输入（本地 faster-whisper）。按住热键说话，松开识别，文字自动填进聊天输入框。首次启动要下载模型（small 约 244MB，走 hf-mirror），会慢几十秒。",
+    "model": "small",
+    "_comment_model": "tiny/base/small/medium。small 是准确率与速度的平衡点；嫌慢换 base，嫌不准换 medium。",
+    "language": "zh",
+    "_comment_language": "识别语言。zh 比 auto 准且快；中英混说时改 auto。",
+    "device": "auto",
+    "_comment_device": "auto = CPU（保守）。理由：cuda 能加载模型但推理时会报 cublas64_12.dll 找不到（cuBLAS 在 torch 目录里，Windows 的 DLL 搜索路径不认 sys.path）。CPU 实测 5~14 倍实时率，够用。",
+    "computeType": "float32",
+    "_comment_computeType": "量化精度，直接决定准确率。float32 = 默认，最准；int8 = 快约 1.75 倍但有量化损失。同一段 7.7 秒录音实测：int8 把「要趁着时间」听成「要趁到时间初」并多出杂字；float32 正确。除非嫌慢，否则保持 float32。",
+    "minMs": 300,
+    "_comment_minMs": "短于这个时长（毫秒）当误触，不识别。防止手一抖就触发。",
+    "maxMs": 15000,
+    "_comment_maxMs": "单次录音上限（毫秒）。到了强制停，防止按住忘了松导致麦克风一直开着。",
+    "silenceMs": 900,
+    "_comment_silenceMs": "说过话之后连续安静这么久就自动停（毫秒）。在长按模式下作为兜底（万一看门狗比松手先触发）。调小=更早结束。",
+    "pushToTalk": true,
+    "_comment_pushToTalk": "true = 长按说话（按住热键开始录，松手立刻识别）。由 Python 轮询按键状态实现，所以能真正拿到「松开」事件 —— 这是 Electron globalShortcut 做不到的。false = 按一下开始、靠静音自动停。",
+    "pttKey": "0xC0",
+    "_comment_pttKey": "长按用的虚拟键码（十六进制）。0xC0 = 波浪键/反引号，0x20 = 空格。改了记得让 hotkeys.voice 和它对应。"
+  },
+  "hotkeys": {
+    "toggleScreenPause": "CommandOrControl+Alt+P",
+    "toggleVisible": "CommandOrControl+Alt+O",
+    "quit": "CommandOrControl+Alt+Q",
+    "chat": "CommandOrControl+Alt+C",
+    "voice": "`",
+    "_comment_quit": "这个进程在任务管理器里叫 electron.exe，很难认出来，所以必须有明确的退出热键。",
+    "_comment_voice": "语音输入：**按住说话，松开识别**。你要求用波浪键（`）。⚠️ 这是**全局**热键 —— 意味着在任何程序里都打不出反引号了（写代码/写 Markdown 会很难受）。嫌烦就改成 \"CommandOrControl+Alt+Space\"。",
+    "_comment_chat": "打开聊天窗。"
+  },
+  "privacy": {
+    "screenPaused": false,
+    "_comment": "屏幕感知的**总闸**（托盘里也能切，热键 Ctrl+Alt+P）。这里 true = 暂停 ⇒ 任何抓屏请求直接拒绝。功能开关在下面的 vision.enabled。",
+    "blocklist": [
+      "1Password",
+      "KeePass",
+      "Bitwarden",
+      "LastPass",
+      "Authenticator",
+      "Password",
+      "Credential",
+      "凭据",
+      "密码",
+      "银行",
+      "Bank",
+      "支付宝",
+      "微信支付",
+      "网上银行"
+    ]
+  },
+  "budget": {
+    "monthlyLimitCNY": 30,
+    "degradeAtRatio": 0.7,
+    "tokensPerCNY": 400000,
+    "_comment_tokensPerCNY": "保守估算（deepseek-flash 空闲时段约 1.5 元/百万混合 token）。首次按真实账单校准一次即可。",
+    "_comment_test": "测熔断时把 monthlyLimitCNY 改小（如 0.0001），测完记得改回来 —— 忘了会导致每条消息都被 block。"
+  },
+  "vision": {
+    "enabled": true,
+    "_comment_enabled": "屏幕感知（小鲸鱼看一眼屏幕）。true 才允许抓屏；**任何一次抓屏都必须由你手动触发**（聊天窗「看一眼」按钮 / 热键），没有常驻截图。运行时还能用托盘「截屏感知」一键暂停。",
+    "model": "deepseek-v4-flash-vision-exp",
+    "_comment_model": "多模态模型。DeepSeek 的 V4-Flash-Vision-Exp：一张图最多 384 token、价格与 V4-Flash 一致。⚠️ 文本对话仍用 llm.model，只有「看屏幕」那一轮按次切换到这个。",
+    "maxWidth": 1280,
+    "_comment_maxWidth": "抓屏后降采样的最长边（token 与像素无关，降采样只为带宽/内存）。"
+  },
+  "chat": {
+    "personality": "你是「鲸鱼娘」，一只住在用户桌面上的 Q 版女仆桌宠。说话口语化、简短、有一点可爱但不浮夸，不用列表和 Markdown 标记，一般一两句话就够。用中文回答。",
+    "_comment_personality": "人格 = 系统提示词。改这里就能换性格，不用动代码。想试不同风格时整段替换即可。",
+    "typewriterCps": 18,
+    "_comment_typewriterCps": "气泡逐字速度（字/秒）。LLM 是**按块**返回的（一次好几个字），直接贴上去看不出逐字效果 —— 必须自己按固定速率吐字。调小=更慢，建议 10~30。",
+    "minThinkingMs": 900,
+    "_comment_minThinkingMs": "角色至少停留在 thinking 帧多久（毫秒）。首字通常 400ms 就到了，不改的话思考神态一闪而过，看不出她在想。",
+    "historyLimit": 12,
+    "_comment_historyLimit": "带多少条历史给模型。太大费 token，太小会忘事。"
+  },
+  "game": {
+    "enabled": true,
+    "_comment_enabled": "轨道 B 的游戏桥。开启后会起一个子进程连到下面的 Minecraft 服务器，把只读状态显示在桌宠底部。**默认关闭** —— 它会起子进程，不该在你没准备时自己跑。要用时先把服务端跑起来（game\\run-mc-server.cmd），再把这里改成 true。",
+    "host": "localhost",
+    "port": 25565,
+    "username": "WhaleGirl",
+    "_comment_username": "离线模式下的名字，随便取。和你自己的游戏 ID 重名会顶掉你，所以别用同一个。",
+    "version": "1.21.1",
+    "everyMs": 5000,
+    "_comment_everyMs": "多久采样一次（毫秒）。只读，频率高低无所谓，5000 足够看出活着。",
+    "hud": true,
+    "_comment_hud": "在桌宠窗口底部显示一行游戏状态。关掉则只写日志不显示。",
+    "_comment_readonly": "⚠️ 当前只读：桥只把探针的输出搬过来显示，不下发任何游戏动作。让它动（P-2 之后）必须走 security-guardrails 的确认流程。"
+  },
+  "llm": {
+    "baseUrl": "https://api.deepseek.com",
+    "model": "deepseek-flash",
+    "thinking": false,
+    "temperature": 1.0,
+    "maxTokens": 512,
+    "stream": true
+  },
+  "selfcheck": {
+    "keepLastN": 50,
+    "maxTotalMB": 50,
+    "settleMs": 1500
+  },
+  "tts": {
+    "enabled": true,
+    "_comment_enabled": "语音合成总开关（托盘也能切）。关掉就完全不说话，只显示气泡。",
+    "engine": "gpt-sovits",
+    "_comment_engine": "edge = 微软神经语音（免费/联网/首音约 1.2 秒）；gpt-sovits = 本地克隆（要起 api_v2.py，约 6 秒/句）。gpt-sovits 挂了/超时会**自动回退 edge**。",
+    "voice": "zh-CN-XiaoyiNeural",
+    "_comment_voice": "免费通道的中文音色只有 8 个：晓晓(Xiaoxiao)/晓伊(Xiaoyi) + 东北晓北/陕西晓妮 + 4 个男声。没有成熟女声这一档。",
+    "rate": "-15%",
+    "_comment_rate": "语速。用户 2026-10-17 定的方向：慢（-15%），压掉元气感。",
+    "pitch": "-10Hz",
+    "_comment_pitch": "音调。降调增加沉稳感；-10Hz 是实测区间里较自然的。",
+    "polish": true,
+    "_comment_polish": "文本演戏：短句句号→省略号、长句插逗号、感叹号降级（与 tools/tts_polish.py 同规则）。",
+    "maxChars": 120,
+    "cacheMB": 50,
+    "timeoutMs": 20000,
+    "gptSovits": {
+      "_comment": "本地 GPT-SoVITS（api_v2.py）。refAudio 用 3~10 秒干净人声；promptText 必须是那段音频里实际说的词，填错会跑调。",
+      "url": "http://127.0.0.1:9880",
+      "refAudio": "assets/ref/ref_audio.wav",
+      "promptText": "我的悲伤是谁做的是谁做的",
+      "promptLang": "zh",
+      "textLang": "zh",
+      "emotionPrefix": "",
+      "temperature": 0.8,
+      "topK": 10,
+      "topP": 0.9,
+      "speed": 1.15,
+      "timeoutMs": 60000,
+      "_comment_ref": "参考音频 = 素材经 UVR5 分离后的 6 秒人声（assets/ref/ref_audio.wav，低频占比 0%）。promptText 必须是这段音频里实际唱的词 —— 用 tools/transcribe_clip.py 转写得到。",
+      "_comment_emotion": "⚠️ 实测：GPT-SoVITS 不认 [平静] 这类标签，会**当字念出来**（加前缀音频 17.7~20.2 秒 vs 不加 10.4 秒）。所以默认置空。",
+      "_comment_speed": "用户要求 +10~15%。实测 speed 生效（2.0 → 5.47s，1.0 → 8.63s）；注意模型有随机性，音频长度会抖动 ±1.5s，别拿长度反推语速。",
+      "sampleSteps": 16,
+      "_comment_steps": "v4 采样步数：32→16 约快 1.7 倍，听不出质量差异。",
+      "textSplit": "cut0",
+      "fragmentInterval": 0.05,
+      "_comment_split": "cut0=不切段（短句省掉片段间静音）+ fragmentInterval 0.05（默认 0.3 太拖）。",
+      "polish": false,
+      "_comment_polish": "GPT 路径**不润色**：润色会把短句变成省略号，模型会拉出很长的停顿（同一句 speed1.15：润色 11.37s / 不润色 7.51s，听感是\"中间慢出电音\"）。edge 路径仍然润色（那边它能压元气）。"
+    }
+  }
+}

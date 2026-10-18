@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>rig 冒烟测试（M2a）</title>
+<!--
+  这是**我们自己写的**最小宿主页，用来验证「原版 rig 能不能跑在我们的 Electron 里」。
+  它做的事很少：搭一个 SVG 舞台 → 用 app:// 载入上游 kit + 形象包 → 让它站着 → 供截图。
+
+  ⚠️ 三个关键点（每一条都是查了上游源码才确定的）：
+   1. 上游是 **ES module** ⇒ 必须走 `app://` 协议（file:// 下 Chromium 会拦 module）。
+   2. `createWhaleFigure(undefined, { asset })` 的 `asset` 必须**重映射贴图路径**：
+      上游期望 `tex/X.png`、`feat/X.png`、`schemes/<id>/tex|feat/X.png`，
+      而我们的素材是**扁平目录**（且不含 schemes 前缀改造）⇒ 去掉 tex/feat 前缀即可
+      （实测 tex 与 feat 之间没有同名文件，所以安全）。
+   3. rig 是 **WebGL**（预乘 alpha）⇒ 宿主页背景必须透明（不能给 body 涂底色）。
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+  #stage { position: relative; width: 100%; height: 100%; overflow: hidden; }
+  #stageSvg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .shadow { fill: #1d2340; opacity: .18; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="stageSvg" aria-hidden="true">
+    <ellipse id="shadow" class="shadow" cx="0" cy="0" rx="0" ry="0"></ellipse>
+    <g id="pet"></g>
+    <g id="fx"></g>
+  </svg>
+</div>
+
+<script type="module">
+import { createPet } from 'app://pet/vendor/web/kit/body.js'
+import { createWhaleFigure } from 'app://pet/vendor/web/whale/figure.js'
+
+// ---- 贴图路径重映射：上游布局 → 我们的扁平素材目录 ----
+const ASSET = new URL('app://pet/assets/')
+const asset = (p) => {
+  const s = String(p).replace(/^\.?\//, '')
+  if (s.startsWith('schemes/')) return new URL(s, ASSET)          // 配色贴图：结构与上游一致
+  return new URL(s.replace(/^(tex|feat)\//, ''), ASSET)           // 主配色：去前缀（扁平）
+}
+
+const scheme = new URLSearchParams(location.search).get('scheme') || 'deepseek'
+
+try {
+  const figure = await createWhaleFigure(undefined, { scheme, asset })
+  const stage = document.getElementById('stage')
+  const ctl = createPet(
+    { petG: document.getElementById('pet'), shadowEl: document.getElementById('shadow'), fxG: document.getElementById('fx') },
+    {
+      figure,
+      sfx: {},                                   // 声音我们自己出，这里给个空实现
+      roam: 'off',                               // 冒烟测试：站着别乱跑
+      bounds: () => {
+        const r = stage.getBoundingClientRect()
+        return { W: r.width, H: r.height, floorY: r.height - 22, S: 0.42 * Math.min(1.4, r.height / 420) }
+      },
+    },
+  )
+  new ResizeObserver(() => ctl.resize()).observe(stage)
+  ctl.resize()
+
+  // ⚠️ 隐藏窗里 Chromium **不跑 requestAnimationFrame**（rAF 只对可见窗口跑）
+  //    ⇒ 不能等它自己动，必须手动推进：kit 把 `step(dt)` 与 `render()` 暴露出来了。
+  //    实测：不推这一下，`#pet` 里连 canvas 都不会被创建（nodes: 0）。
+  let frames = 0
+  const pump = () => {
+    for (let i = 0; i < 20; i++) { ctl.step(1 / 60); ctl.render(); frames++ }
+    window.__frames = frames
+    window.__diag = {
+      frames,
+      layout: ctl.layout ? ctl.layout() : null,
+      pet: { x: Math.round(ctl.pet.x), fy: Math.round(ctl.pet.fy), mode: ctl.pet.mode, facing: ctl.pet.facing },
+      petChildren: document.getElementById('pet').childElementCount,
+      svgChildren: document.getElementById('stageSvg').childElementCount,
+    }
+    if (frames < 240) setTimeout(pump, 0)     // 分片推进，别把主线程卡死
+    else window.__done = true
+  }
+  pump()
+
+  window.__ctl = ctl
+  window.__figure = figure
+  window.__ok = true
+} catch (e) {
+  window.__err = String((e && e.stack) || e)
+  console.error('rig smoke failed:', window.__err)
+}
+</script>
+</body>
+</html>

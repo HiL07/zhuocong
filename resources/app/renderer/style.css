@@ -1,0 +1,190 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent; /* 关键：让 Electron 透明窗真的透出去 */
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+  font-family: "Microsoft YaHei UI", "Segoe UI", system-ui, sans-serif;
+}
+
+#stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /*
+   * 注意：这里刻意 **不** 用 -webkit-app-region: drag。
+   * drag 区域会吞掉所有鼠标事件，于是「能拖动」和「能点击角色」只能二选一。
+   * 拖动改由 renderer.js 通过 IPC 手动实现（位移 >4px 视为拖动，否则视为点击）。
+   */
+}
+
+#pet {
+  position: relative; /* 小手要绝对定位在角色上方 */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+}
+
+.pet-sprite {
+  /* canvas：max-* + auto 会在保持宽高比的前提下等比缩放 */
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  display: block;
+  /* 刻意不加 drop-shadow：每帧重绘的 canvas 上挂 filter 会带来额外重绘开销 */
+}
+
+/* 拖动时不再叠加小手贴图：手已经画在 held 素材里了 */
+
+#toast {
+  position: absolute;
+  left: 50%;
+  top: 6%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(18, 20, 28, 0.88);
+  color: #eaf2ff;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+
+#toast.show {
+  opacity: 1;
+}
+
+#hud {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 3px;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.35;
+  padding: 2px 5px;
+  border-radius: 7px;
+  /* 半透明底：不加的话白字压在角色脚上完全看不清 */
+  background: rgba(28, 22, 18, 0.62);
+  color: #f6efe7;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* hidden 属性默认是 display:none，但一旦元素有了显式的 display 就会被盖掉。
+   这里显式写一次，确保 hidden 一定生效。 */
+#hud[hidden] {
+  display: none;
+}
+
+/* 游戏桥连不上时用暖色提示，别让用户以为是自己没看见 */
+#hud.err {
+  color: #ffd9cf;
+}
+
+/* 可恢复状态（重连中）：不是错误，用中性偏暖的琥珀色 */
+#hud.warn {
+  color: #ffe4b5;
+}
+
+/*
+ * 自检专用：铺一层不透明棋盘格。
+ * 用途是把「窗口真透明」和「PNG 里透明区域显示成黑」两种情况区分开——
+ * 否则只看 raw 截图会把正常透明误判成黑底 bug。
+ */
+body.debug-bg {
+  background-color: #2b2f3a;
+  background-image: linear-gradient(45deg, #3a4050 25%, transparent 25%, transparent 75%, #3a4050 75%),
+    linear-gradient(45deg, #3a4050 25%, transparent 25%, transparent 75%, #3a4050 75%);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+
+/*
+ * 气泡：流式回复逐字显示。
+ *
+ * 位置策略：贴住 #stage 顶部。窗口显示气泡时会**向上撑高**
+ * （见 main/index.ts 的 setBubbleExtra），所以这里不需要挤空间，
+ * 也不用担心遮住角色。
+ */
+#bubble {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 0;
+  max-height: 96px;
+  overflow: hidden;
+  padding: 7px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(200, 176, 150, 0.55);
+  box-shadow: 0 3px 10px rgba(60, 40, 20, 0.22);
+  color: #3b332c;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  word-break: break-word;
+  /* 关键：气泡本身不能被拖动/点击捕获，否则点它会变成拖桌宠 */
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+#bubble[hidden] {
+  display: none;
+}
+
+/* 气泡底下的小尖角，指向角色 */
+#bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 0;
+  height: 0;
+  margin-left: -6px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid rgba(255, 255, 255, 0.97);
+}
+
+/* 逐字进行中的光标 */
+#bubble.typing::before {
+  content: "▍";
+  float: right;
+  color: #c98a5b;
+  animation: bubble-blink 1s steps(2, start) infinite;
+}
+
+@keyframes bubble-blink {
+  to { visibility: hidden; }
+}
+
+/* 出错时换个色，一眼能区分 */
+#bubble.err {
+  background: rgba(255, 240, 238, 0.98);
+  border-color: rgba(200, 120, 110, 0.6);
+  color: #9c3b30;
+}
+#bubble.err::after {
+  border-top-color: rgba(255, 240, 238, 0.98);
+}

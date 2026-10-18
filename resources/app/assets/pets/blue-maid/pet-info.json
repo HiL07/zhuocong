@@ -1,0 +1,63 @@
+{
+  "name": "blue-maid",
+  "source": "assets\\inbox",
+  "size": 256,
+  "map": {
+    "idle": "7.jpg",
+    "talking": "2.jpg",
+    "click": "3.jpg",
+    "thinking": "4.jpg",
+    "error": "5.jpg",
+    "held": "1.jpg"
+  },
+  "states": {
+    "idle": {
+      "frames": 8,
+      "frame_ms": 500,
+      "motion": "idle",
+      "source": "7.jpg",
+      "dir": "assets\\pets\\blue-maid\\idle",
+      "gif": "assets\\pets\\blue-maid\\idle.gif"
+    },
+    "talking": {
+      "frames": 4,
+      "frame_ms": 140,
+      "motion": "talking",
+      "source": "2.jpg",
+      "dir": "assets\\pets\\blue-maid\\talking",
+      "gif": "assets\\pets\\blue-maid\\talking.gif"
+    },
+    "click": {
+      "frames": 5,
+      "frame_ms": 100,
+      "motion": "click",
+      "source": "3.jpg",
+      "dir": "assets\\pets\\blue-maid\\click",
+      "gif": "assets\\pets\\blue-maid\\click.gif"
+    },
+    "thinking": {
+      "frames": 6,
+      "frame_ms": 220,
+      "motion": "thinking",
+      "source": "4.jpg",
+      "dir": "assets\\pets\\blue-maid\\thinking",
+      "gif": "assets\\pets\\blue-maid\\thinking.gif"
+    },
+    "error": {
+      "frames": 6,
+      "frame_ms": 260,
+      "motion": "thinking",
+      "source": "5.jpg",
+      "dir": "assets\\pets\\blue-maid\\error",
+      "gif": "assets\\pets\\blue-maid\\error.gif"
+    },
+    "held": {
+      "frames": 8,
+      "frame_ms": 90,
+      "motion": "held",
+      "source": "1.jpg",
+      "dir": "assets\\pets\\blue-maid\\held",
+      "gif": "assets\\pets\\blue-maid\\held.gif"
+    }
+  }
+}

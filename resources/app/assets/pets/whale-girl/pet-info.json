@@ -1,0 +1,119 @@
+{
+  "name": "whale-girl",
+  "source": ".tmp-assemble-stage",
+  "size": 224,
+  "map": {
+    "idle": "idle.png",
+    "talking": "talking.png",
+    "click": "click.png",
+    "thinking": "thinking.png",
+    "error": "error.png",
+    "held": "held.png",
+    "running": "running.png",
+    "rolling": "rolling.png"
+  },
+  "states": {
+    "idle": {
+      "frames": 8,
+      "frame_ms": 420,
+      "motion": "sway",
+      "source": "idle.png",
+      "dir": "assets\\pets\\whale-girl\\idle",
+      "gif": "assets\\pets\\whale-girl\\idle.gif"
+    },
+    "talking": {
+      "frames": 8,
+      "frame_ms": 150,
+      "motion": "nod",
+      "source": "talking.png",
+      "dir": "assets\\pets\\whale-girl\\talking",
+      "gif": "assets\\pets\\whale-girl\\talking.gif"
+    },
+    "click": {
+      "frames": 10,
+      "frame_ms": 90,
+      "motion": "hop",
+      "source": "click.png",
+      "dir": "assets\\pets\\whale-girl\\click",
+      "gif": "assets\\pets\\whale-girl\\click.gif"
+    },
+    "thinking": {
+      "frames": 10,
+      "frame_ms": 240,
+      "motion": "float",
+      "source": "thinking.png",
+      "dir": "assets\\pets\\whale-girl\\thinking",
+      "gif": "assets\\pets\\whale-girl\\thinking.gif"
+    },
+    "error": {
+      "frames": 8,
+      "frame_ms": 260,
+      "motion": "nod",
+      "source": "error.png",
+      "dir": "assets\\pets\\whale-girl\\error",
+      "gif": "assets\\pets\\whale-girl\\error.gif"
+    },
+    "held": {
+      "frames": 8,
+      "frame_ms": 90,
+      "motion": "held",
+      "source": "held.png",
+      "dir": "assets\\pets\\whale-girl\\held",
+      "gif": "assets\\pets\\whale-girl\\held.gif"
+    },
+    "running": {
+      "frames": 8,
+      "frame_ms": 80,
+      "motion": "running",
+      "source": "running.png",
+      "dir": "assets\\pets\\whale-girl\\running",
+      "gif": "assets\\pets\\whale-girl\\running.gif"
+    },
+    "rolling": {
+      "frames": 8,
+      "frame_ms": 110,
+      "motion": "rolling",
+      "source": "rolling.png",
+      "dir": "assets\\pets\\whale-girl\\rolling",
+      "gif": "assets\\pets\\whale-girl\\rolling.gif"
+    }
+  },
+  "grab": {
+    "x": 0.5,
+    "y": 0.05
+  },
+  "_source_picks": {
+    "idle": {
+      "file": "illust_idle_HC_idle_1234_00001_.png",
+      "measured_heads": 2.58
+    },
+    "talking": {
+      "file": "illust_idle_HC_talking_1234_00001_.png",
+      "measured_heads": 2.57
+    },
+    "click": {
+      "file": "illust_idle_HC_click_1234_00001_.png",
+      "measured_heads": 2.47
+    },
+    "thinking": {
+      "file": "illust_idle_ST_thinking_1234_00001_.png",
+      "measured_heads": 2.63
+    },
+    "error": {
+      "file": "illust_idle_ST_error_1234_00001_.png",
+      "measured_heads": 2.63
+    },
+    "held": {
+      "file": "illust_idle_FIX_held_1234_00001_.png",
+      "measured_heads": 2.43
+    },
+    "running": {
+      "file": "illust_idle_FIX_run_1234_00001_.png",
+      "measured_heads": 2.27
+    },
+    "rolling": {
+      "file": "illust_idle_ST_rolling_1234_00001_.png",
+      "measured_heads": 2.18
+    }
+  }
+}

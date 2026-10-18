@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; media-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    />
+    <title>DSH 桌宠</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <div id="pet"></div>
+      <!-- 气泡：流式回复逐字显示在这里。
+           窗口在显示气泡时会临时向上撑高（见 main/index.ts 的 setBubbleExtra），
+           所以这里的高度不用自己挤。 -->
+      <div id="bubble" hidden></div>
+      <div id="toast"></div>
+      <!-- 游戏状态 HUD（轨道 B · B-4）。
+           为什么用 HUD 而不是气泡：气泡是给对话逐字用的，
+           游戏状态是**持续刷新**的，塞进气泡会互相打架。
+           #hud 的样式在 P0 就写好了（style.css），一直没用上。 -->
+      <div id="hud" hidden></div>
+    </div>
+    <!-- 刻意用普通 script 而非 type="module"：
+         file:// 下 Chromium 会以 CORS 拦截 ES module，而引入打包器又会带进一整条易碎的工具链。 -->
+    <script src="./renderer.js"></script>
+  </body>
+</html>

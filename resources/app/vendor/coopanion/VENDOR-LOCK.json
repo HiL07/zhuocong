@@ -1,0 +1,25 @@
+{
+  "syncedAt": "2026-10-17 08:39:18",
+  "source": "C:/Users/李英睿/Documents/deepseek-harness/default-workspace/Tools/Coopanion/Coopanion-main",
+  "upstreamRepo": "https://github.com/Pal-AI-Lab/Coopanion",
+  "license": "AGPL-3.0-or-later",
+  "note": "贴图未复制：与 assets/raw/coopanion-whale 逐张 md5 相同；运行时用 opts.asset 映射。",
+  "files": {
+    "web/kit/rig.js": "c64e1b813cb27acf25cf60a768e4f1ae",
+    "web/kit/body.js": "8b098d9c628fa211dd86f6619f1aceba",
+    "web/whale/figure.js": "b131b78fec394e58d588c1b8c1996138",
+    "web/whale/figure.json": "0397896f532d091b0c10773518e9954a",
+    "web/whale/model.json": "edb03a1ba28a53c3eaf0401d3a0aa4c1",
+    "LICENSE": "dc8a69262df42c56133215cda912c9a9",
+    "web/whale/thumbs/cape.png": "c3c26f565dea2337da8b57f540b1106f",
+    "web/whale/thumbs/chatgpt.png": "afaa179233038085571bf44a0177dea3",
+    "web/whale/thumbs/claude.png": "52894e0427a3594c6b1f6cb0d20e8892",
+    "web/whale/thumbs/deepseek.png": "a3b4ed6a3d5de0372e7c8a4ca0b97f43",
+    "web/whale/thumbs/gemini.png": "240288528c2d80596892b82bba4574f9",
+    "web/whale/thumbs/harness.png": "61aaf8ae78e07a5c984dd93840c44847",
+    "web/whale/thumbs/kimi.png": "491524c88f806995a7021bfadc43b39b",
+    "web/whale/thumbs/maid.png": "5c027954183207cc6b282e1173630ce0",
+    "web/whale/thumbs/minimax.png": "eff564d3acab924c92abbb7b67945a4d",
+    "web/whale/thumbs/qwen.png": "4389913c7ffd1701ec07333d61af2d93"
+  }
+}
